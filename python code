@@ -1,0 +1,56 @@
+###  Lambda Function Code:
+
+python
+import boto3
+
+ec2 = boto3.client('ec2')
+
+def lambda_handler(event, context):
+    availability_zone = 'us-west-2b'
+    snapshot_id = 'snap-005219d56922a25ef'
+
+    # Step 1: Create a volume from the specific snapshot
+    new_volume = ec2.create_volume(
+        SnapshotId=snapshot_id,
+        AvailabilityZone=availability_zone,
+        VolumeType='gp2'
+    )
+
+    volume_id = new_volume['VolumeId']
+    print(f" Created volume: {volume_id}")
+
+    # Step 2: Wait for the volume to be available
+    ec2.get_waiter('volume_available').wait(VolumeIds=[volume_id])
+    print(" Volume is now available")
+
+    # Step 3: Launch a new EC2 instance
+    image_id = 'ami-05f991c49d264708f'
+    new_instance = ec2.run_instances(
+        ImageId=image_id,
+        MinCount=1,
+        MaxCount=1,
+        InstanceType='t2.micro',
+        Placement={'AvailabilityZone': availability_zone}
+    )
+
+    instance_id = new_instance['Instances'][0]['InstanceId']
+    print(f" Launched new instance: {instance_id}")
+
+    # Step 4: Wait for the instance to be running
+    ec2.get_waiter('instance_running').wait(InstanceIds=[instance_id])
+    print(" Instance is now running")
+
+    # Step 5: Attach the volume
+    ec2.attach_volume(
+        VolumeId=volume_id,
+        InstanceId=instance_id,
+        Device='/dev/sdf'
+    )
+
+    print(f" Attached volume {volume_id} to instance {instance_id}")
+
+    return {
+        'status': 'success',
+        'instance_id': instance_id,
+        'volume_id': volume_id
+    }
