@@ -1,5 +1,6 @@
 Step-by-Step Execution Plan
 Step 1: Prepare Your AWS Resources
+
  Launch an EC2 instance (if not already running)
  Create a new EBS volume and attach it to the instance (if needed)
  Take a manual snapshot of that volume
