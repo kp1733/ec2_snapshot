@@ -1,42 +1,56 @@
-**Assignment 17: Restore EC2 Instance from Snapshot using AWS Lambda**
+Step-by-Step Execution Plan
+Step 1: Prepare Your AWS Resources
+ Launch an EC2 instance (if not already running)
+ Create a new EBS volume and attach it to the instance (if needed)
+ Take a manual snapshot of that volume
 
+Note down:
 
+Snapshot ID → snap-005219d56922a25ef
+Availability Zone → us-west-2b
 
- Prerequisites:
+Step 2: Create an IAM Role for Lambda
+Go to IAM > Roles > Create Role=AmazonEC2FullAccess
 
-* AWS account with EC2 and Lambda permissions
-* One existing snapshot (`snap-005219d56922a25ef`) in Availability Zone `us-west-2b`
-* An existing AMI to launch EC2 (`ami-05f991c49d264708f`)
+Select AWS service > Lambda
 
----
+Attach these policies:
+AmazonEC2FullAccess 
+Name it: lambda-ec2-snapshot-role
 
-###  Lambda Function Summary
+Step 3: Create the Lambda Function
+Go to Lambda > Create Function
 
-This Lambda function:
+Runtime: Python 3.12
 
-1. Creates a new EBS volume from a specific snapshot
-2. Launches a new EC2 instance
-3. Attaches the new volume to the instance as a secondary volume
+Name: restoreEC2fromSnapshot
 
----
+Execution Role: Select the IAM role created in Step 2
 
-###  Configuration:
+Step 4: Paste the Python Code
+Click Deploy
 
-**Lambda Runtime**: Python 3.12
-**IAM Role Permissions**:
-Ec2 full access
+Step 5: Create and Run Test Event
+Click Test > Configure test event
 
-###  Execution Results:
+Name it: kp-manual-test
 
-* Lambda tested successfully after increasing timeout
-* Volume created and attached from snapshot
-* New EC2 instance launched
+Click Test
 
----
+If successful, you’ll see:
 
-###
+Volume created from snapshot
+Instance launched
+Volume attached as /dev/sdf
 
-* The volume is attached as a secondary device (`/dev/sdf`)
-* This allows access to the snapshot data inside the new EC2
+Sometimes it fails with timeout error
 
+then
+Step 6: Increase Lambda Timeout
+Go to lamda > Configuration > General Configuration
 
+Click Edit>Change timeout from 3 seconds to 2 minutes
+
+Save
+
+Deploy and test again
